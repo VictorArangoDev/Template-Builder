@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import EditorApp from '../../components/editor/Editor.tsx';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+---
+
+<Layout>
+	<EditorApp client:only="react" projectId={id || 'default'} />
+</Layout>
