@@ -1,0 +1,376 @@
+/* src/components/canvas/canvas.css */
+
+/* ============================================
+   Canvas Renderer
+   ============================================ */
+.canvas-renderer {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  background: var(--y-canvas-bg, #1a1a2e);
+  background-image: 
+    linear-gradient(var(--y-grid-color, rgba(255, 255, 255, 0.03)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--y-grid-color, rgba(255, 255, 255, 0.03)) 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 32px;
+}
+
+.canvas-renderer__document {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--y-surface, #1e1e2e);
+  border: 1px solid var(--y-border, #2e2e4e);
+  border-radius: 8px;
+  padding: 48px;
+  min-height: 600px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Drop Indicator */
+.canvas-renderer__drop-indicator {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgba(108, 108, 240, 0.05);
+  border: 2px dashed rgba(108, 108, 240, 0.3);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.canvas-renderer--dragover .canvas-renderer__drop-indicator {
+  display: flex;
+}
+
+.canvas-renderer__drop-indicator span {
+  font-size: 14px;
+  color: var(--y-accent, #6c6cf0);
+  font-weight: 500;
+}
+
+/* Empty State */
+.canvas-renderer__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+  color: var(--y-text-muted, #6a6a80);
+}
+
+.canvas-renderer__empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.3;
+  color: var(--y-text-muted, #6a6a80);
+}
+
+.canvas-renderer__empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--y-text-secondary, #a0a0b0);
+  margin: 0 0 8px;
+}
+
+.canvas-renderer__empty-text {
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 360px;
+  margin: 0;
+  color: var(--y-text-muted, #6a6a80);
+}
+
+/* ============================================
+   Canvas Node
+   ============================================ */
+.canvas-node__wrapper {
+  position: relative;
+  margin-bottom: 4px;
+}
+
+/* Selection Indicator */
+.canvas-node__selection-indicator {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+  z-index: 10;
+}
+
+.canvas-node__breadcrumb {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--y-accent, #6c6cf0);
+  background: var(--y-surface-elevated, #252540);
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--y-accent, #5a5a9a);
+}
+
+.canvas-node__actions-bar {
+  display: flex;
+  gap: 2px;
+  background: var(--y-surface-elevated, #252540);
+  padding: 2px;
+  border-radius: 6px;
+  border: 1px solid var(--y-border, #3a3a5a);
+}
+
+.canvas-node__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--y-text-secondary, #a0a0b0);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.canvas-node__action-btn:hover {
+  background: var(--y-surface-hover, #3a3a5a);
+  color: var(--y-text-primary, #e4e4f0);
+}
+
+.canvas-node__action-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Node Base Styles */
+.canvas-node {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+  outline: none;
+}
+
+.canvas-node:hover {
+  outline: 1px solid rgba(108, 108, 240, 0.2);
+}
+
+/* Selected State */
+.canvas-node--selected {
+  outline: 2px solid var(--y-accent, #6c6cf0) !important;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Hidden State */
+.canvas-node--hidden {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.canvas-node--hidden-placeholder {
+  padding: 8px 12px;
+  border: 1px dashed var(--y-border, #3a3a5a);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.canvas-node--hidden-placeholder:hover {
+  opacity: 0.8;
+}
+
+.canvas-node__hidden-label {
+  font-size: 12px;
+  color: var(--y-text-muted, #6a6a80);
+  font-style: italic;
+}
+
+/* Locked State */
+.canvas-node--locked {
+  cursor: default;
+  opacity: 0.9;
+}
+
+.canvas-node--locked:hover {
+  outline-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Dragging State */
+.canvas-node--dragging {
+  opacity: 0.5;
+  outline: 1px dashed var(--y-accent, #6c6cf0);
+}
+
+/* ============================================
+   Node Type Specific Styles
+   ============================================ */
+
+/* Heading */
+.canvas-node--heading {
+  margin: 0 0 8px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--y-text-primary, #e4e4f0);
+  min-height: 1.3em;
+}
+
+/* Paragraph */
+.canvas-node--paragraph {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--y-text-secondary, #a1a1aa);
+  min-height: 1.6em;
+}
+
+/* Image */
+.canvas-node--image {
+  margin: 16px 0;
+  position: relative;
+}
+
+.canvas-node__image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.canvas-node__image-caption {
+  font-size: 11px;
+  color: var(--y-text-muted, #6a6a80);
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Variable */
+.canvas-node--variable {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(108, 108, 240, 0.1);
+  color: var(--y-accent, #a78bfa);
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px dashed rgba(108, 108, 240, 0.3);
+}
+
+.canvas-node__variable-hint {
+  display: block;
+  font-size: 10px;
+  color: var(--y-text-muted, #6a6a80);
+  margin-top: 4px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Container */
+.canvas-node--container {
+  padding: 16px;
+  border: 1px dashed var(--y-border, #3a3a5a);
+  border-radius: 6px;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.canvas-node__container-empty {
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--y-text-muted, #6a6a80);
+  border: 1px dashed var(--y-border, #2e2e4e);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Table */
+.canvas-node--table {
+  width: 100%;
+  margin: 16px 0;
+}
+
+.canvas-node__table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--y-border, #2e2e4e);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.canvas-node__table-empty {
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--y-text-muted, #6a6a80);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Row */
+.canvas-node--row {
+  border-bottom: 1px solid var(--y-border, #2e2e4e);
+}
+
+.canvas-node__row-empty {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--y-text-muted, #6a6a80);
+}
+
+/* Column */
+.canvas-node--column {
+  padding: 8px 12px;
+  border-right: 1px solid var(--y-border, #2e2e4e);
+  vertical-align: top;
+}
+
+.canvas-node--column:last-child {
+  border-right: none;
+}
+
+.canvas-node__column-empty {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--y-text-muted, #6a6a80);
+  min-height: 24px;
+}
+
+/* Unknown Type */
+.canvas-node__unknown-type {
+  display: inline-block;
+  padding: 2px 6px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 768px) {
+  .canvas-renderer {
+    padding: 16px;
+  }
+
+  .canvas-renderer__document {
+    padding: 24px;
+  }
+}

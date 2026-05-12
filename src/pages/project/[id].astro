@@ -8,5 +8,5 @@ const { id } = Astro.params;
 ---
 
 <Layout>
-	<EditorApp client:only="react" projectId={id || 'default'} />
+	<EditorApp client:load projectId={id || 'default'} />
 </Layout>
