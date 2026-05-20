@@ -2,6 +2,8 @@
 import type { TNode } from '../types/index';
 import { NODE_TYPES } from './constants';
 
+
+
 // Generar ID único (reemplaza crypto.randomUUID en caso de no estar disponible)
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

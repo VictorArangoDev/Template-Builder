@@ -1,252 +1,149 @@
-import { FileText } from "lucide-react";
+import { useState } from 'react'
+import { Globe, Play, ChevronDown } from 'lucide-react'
+import { cn } from '../lib/utils';
 
-interface HeaderBarProps {
-  
-
+interface NavItemProps {
+  icon: React.ReactNode
+  label: string
+  active?: boolean
+  onClick?: () => void
 }
 
-export default function  HeaderBar({
- 
- 
-}: HeaderBarProps) {
+function NavItem({ icon, label, active, onClick }: NavItemProps) {
   return (
-    <>
-    <header className="h-14 bg-background border-b  grid grid-cols-3 items-center px-4">
-      {/* Left: Logo & Navigation */}
-      <div className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-gray-900">VAPDFKIT</span>
-          </div>
+    <button
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150',
+        active
+          ? 'bg-gray-100 text-gray-800'
+          : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  )
+}
+
+function LogoIcon() {
+  return (
+    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-sm select-none">
+      <svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 0.5L1 8.5H5.5L4.5 14.5L11 6.5H6.5L7 0.5Z" fill="white" stroke="white" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  )
+}
+
+function DesignIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="2" y="2" width="5" height="5" rx="1"/>
+      <rect x="9" y="2" width="5" height="5" rx="1"/>
+      <rect x="2" y="9" width="5" height="5" rx="1"/>
+      <rect x="9" y="9" width="5" height="5" rx="1"/>
+    </svg>
+  )
+}
+
+function CMSIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="2" y="3" width="12" height="10" rx="1"/>
+      <line x1="2" y1="6" x2="14" y2="6"/>
+      <line x1="5" y1="3" x2="5" y2="6"/>
+    </svg>
+  )
+}
+
+function FormsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="2" y="2" width="12" height="12" rx="1"/>
+      <line x1="5" y1="5" x2="11" y2="5"/>
+      <line x1="5" y1="8" x2="11" y2="8"/>
+      <line x1="5" y1="11" x2="8" y2="11"/>
+    </svg>
+  )
+}
+
+export default function HeaderBar() {
+  const [activeNav, setActiveNav] = useState('design')
+
+  return (
+    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 select-none">
+      {/* Left section */}
       <div className="flex items-center gap-2">
-
-        {/* User Menu */}
-        {/* DROPDOWN */}
-
-        <div className="flex gap-1">
-          {/* <Button
-            variant={activeNavButton === 'design' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => {
-              setOptimisticNav('design');
-              setActiveSidebarTab('layers');
-              // Restore last design URL if available
-              if (lastDesignUrl) {
-                router.push(lastDesignUrl);
-              } else {
-                const targetPageId = storeCurrentPageId || findHomepage(storePages)?.id || storePages[0]?.id;
-                if (targetPageId) {
-                  navigateToLayers(targetPageId);
-                }
-              }
-            }}
-          >
-            <Icon name="cursor-default" />
-            Design
-          </Button>
-          <Button
-            variant={activeNavButton === 'cms' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => {
-              // Save current design URL before navigating away
-              const isDesignRoute = routeType === 'layers' || routeType === 'page' || routeType === 'component';
-              if (isDesignRoute) {
-                setLastDesignUrl(window.location.pathname + window.location.search);
-              }
-              setOptimisticNav('cms');
-              setActiveSidebarTab('cms');
-              // Navigate to last selected or first available collection
-              const targetCollectionId = storeSelectedCollectionId || collections[0]?.id;
-              if (targetCollectionId) {
-                setSelectedCollectionId(targetCollectionId);
-                navigateToCollection(targetCollectionId);
-              } else {
-                navigateToCollections();
-              }
-            }}
-          >
-            <Icon name="database" />
-            CMS
-          </Button>
-          <Button
-            variant={activeNavButton === 'forms' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => {
-              // Save current design URL before navigating away
-              const isDesignRoute = routeType === 'layers' || routeType === 'page' || routeType === 'component';
-              if (isDesignRoute) {
-                setLastDesignUrl(window.location.pathname + window.location.search);
-              }
-              setOptimisticNav('forms');
-              router.push('/ycode/forms');
-            }}
-          >
-            <Icon name="form" />
-            Forms
-          </Button> */}
+        {/* Logo */}
+        <div className="flex items-center justify-center mr-3 cursor-pointer">
+          <LogoIcon />
         </div>
+
+        {/* Navigation */}
+        <nav className="flex items-center gap-1.5">
+          <NavItem
+            icon={<DesignIcon />}
+            label="Design"
+            active={activeNav === 'design'}
+            onClick={() => setActiveNav('design')}
+          />
+          <NavItem
+            icon={<CMSIcon />}
+            label="CMS"
+            active={activeNav === 'cms'}
+            onClick={() => setActiveNav('cms')}
+          />
+          <NavItem
+            icon={<FormsIcon />}
+            label="Forms"
+            active={activeNav === 'forms'}
+            onClick={() => setActiveNav('forms')}
+          />
+        </nav>
       </div>
 
-      <div className="flex gap-1.5 items-center justify-center">
-        {/* <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="xs" variant="ghost">
-              <Icon name="globe" />
-              {selectedLocale ? selectedLocale.code.toUpperCase() : 'EN'}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuRadioGroup
-              value={selectedLocaleId || ''}
-              onValueChange={(value) => setSelectedLocaleId(value)}
-            >
-              {locales.map((locale) => (
-                <DropdownMenuRadioItem key={locale.id} value={locale.id}>
-                  <span className="flex items-center gap-3">
-                    {locale.label}
-                    {locale.is_default && (
-                      <Badge variant="secondary" className="text-[10px] mr-5">
-                        Default
-                      </Badge>
-                    )}
-                  </span>
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-            {!pathname?.startsWith('/ycode/localization') && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => router.push('/ycode/localization')}
-                >
-                  Manage locales
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu> */}
-
-        <div className="h-5">
-          {/* <Separator orientation="vertical" /> */}
+      {/* Center section */}
+      <div className="hidden lg:flex items-center gap-4">
+        {/* Language */}
+        <div className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 cursor-pointer transition-colors px-1 py-1 rounded">
+          <Globe className="w-4 h-4 stroke-[1.8]" />
+          <span className="font-semibold text-xs tracking-wider">EN</span>
         </div>
 
-        {/* <Button
-          size="xs"
-          variant="ghost"
-          asChild
-        >
-          <a
-            href={baseUrl + publishedUrl} target="_blank"
-            rel="noopener noreferrer"
-          >
-            {baseUrl}
-          </a>
-        </Button>
+        {/* URL Display */}
+        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-1.5 text-xs text-gray-400 font-mono tracking-tight select-all">
+          <span>http://localhost:3002</span>
+        </div>
 
-        {hasUpdate && (
-          <>
-            <div className="h-5">
-              <Separator orientation="vertical" />
-            </div>
-
-            <Button
-              size="xs"
-              variant="default"
-              className="bg-primary/20 hover:bg-primary/30 text-blue-400 hover:text-blue-300"
-              onClick={() => router.push('/ycode/settings/updates')}
-            >
-              Update available
-            </Button>
-          </>
-        )} */}
+        {/* Update Available Badge */}
+        <span className="bg-blue-50 text-blue-600 border border-blue-100 rounded-full px-3 py-1 text-[11px] font-bold shadow-xs select-none">
+          Update available
+        </span>
       </div>
 
-      {/* Right: User & Actions */}
-      <div className="flex items-center justify-end gap-2">
-        {/* Active Users */}
-        {/* <ActiveUsersInHeader /> */}
-
-        {/* Invite User */}
-        {/* <InviteUserButton /> */}
-
-        {/* Save Status Indicator */}
-        <div className="flex items-center justify-end w-16 text-xs text-zinc-500 dark:text-white/50">
-          {/* {isSaving ? (
-            <>
-              <span>Saving</span>
-            </>
-          ) : hasUnsavedChanges ? (
-            <>
-              <span>Unsaved</span>
-            </>
-          ) : lastSaved ? (
-            <>
-              <span>Saved</span>
-            </>
-          ) : (
-            <>
-              <span>Ready</span>
-            </>
-          )} */}
+      {/* Right section */}
+      <div className="flex items-center gap-4">
+        {/* User avatar */}
+        <div className="w-8 h-8 rounded-full bg-indigo-500 hover:bg-indigo-600 transition-colors flex items-center justify-center text-white text-xs font-semibold shadow-xs cursor-pointer">
+          VI
         </div>
 
-        {/* Preview button */}
-        {/* <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => {
-            if (isPreviewMode) {
-              if (previewReturnUrl) {
-                // Navigate back while keeping preview visible — the useEffect
-                // above will turn off preview once the route change completes
-                if (previewReturnTab) {
-                  setActiveSidebarTab(previewReturnTab);
-                }
-                router.push(previewReturnUrl);
-                setPreviewReturn(null);
-                return;
-              }
+        <button className="text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors">
+          Invite
+        </button>
 
-              setPreviewMode(false);
-              updateQueryParams({ preview: undefined });
-              return;
-            }
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 select-none">
+          <span>Ready</span>
+          <div className="w-5 h-5 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer transition-colors">
+            <Play className="w-3.5 h-3.5 fill-gray-500 stroke-gray-500" />
+          </div>
+        </div>
 
-            setPreviewMode(true);
-
-            // Preview renders the current page, so when invoked from a non-design
-            // route (CMS, forms, etc.) we need to jump to the layers view first
-            const isDesignRoute = routeType === 'layers' || routeType === 'page' || routeType === 'component' || routeType === null;
-            if (!isDesignRoute && currentPageId) {
-              setPreviewReturn(window.location.pathname + window.location.search, activeTab);
-              setActiveSidebarTab('layers');
-              const params = new URLSearchParams(window.location.search);
-              params.set('preview', 'true');
-              router.push(`/ycode/layers/${currentPageId}?${params.toString()}`);
-              return;
-            }
-
-            updateQueryParams({ preview: 'true' });
-          }}
-          disabled={!currentPage || isSaving}
-          className={isPreviewMode ? 'bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90' : ''}
-        >
-          <Icon name="preview" />
-        </Button> */}
-
-        {/* <PublishPopover
-          isPublishing={isPublishing}
-          setIsPublishing={setIsPublishing}
-          baseUrl={baseUrl}
-          publishedUrl={publishedUrl}
-          onPublishSuccess={onPublishSuccess}
-        /> */}
-
+        <button className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm active:scale-98 transition-all">
+          Publish
+        </button>
       </div>
     </header>
-
-    {/* <BackupRestoreDialog
-      open={showTransferDialog}
-      onOpenChange={setShowTransferDialog}
-    /> */}
-    </>
-  );
+  )
 }

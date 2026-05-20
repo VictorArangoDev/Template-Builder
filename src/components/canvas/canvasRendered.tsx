@@ -1,10 +1,11 @@
-// src/components/canvas/canvasRendered.tsx
 'use client';
 
-import React, { useCallback, useRef } from 'react';
-import  { useLayersStore } from '../layers/layer-store';
-import { CanvasNode } from './canvasNode';
+import React, { useState } from 'react';
+import { Home, ChevronDown, Undo2, Redo2 } from 'lucide-react';
+import { useDesignStore } from '../../stores/useDesignStore';
+import CanvasNode from './canvasNode';
 import type { TNode } from '../../types';
+import { cn } from '../../lib/utils';
 import './canvas.css';
 
 interface CanvasRendererProps {
@@ -14,90 +15,119 @@ interface CanvasRendererProps {
   isDragging?: boolean;
 }
 
+type DeviceType = 'desktop' | 'tablet' | 'phone';
+
+const deviceWidths: Record<DeviceType, string> = {
+  desktop: '100%',
+  tablet: '768px',
+  phone: '375px',
+};
+
 export default function CanvasRenderer({
   nodes,
   selectedNodeId,
   onSelectNode,
   isDragging = false,
 }: CanvasRendererProps) {
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const [device, setDevice] = useState<DeviceType>('desktop');
+  const [zoom, setZoom] = useState(81);
+  
+  const designStore = useDesignStore();
+  const currentPage = designStore.pages.find(p => p.id === designStore.currentPageId) || designStore.pages[0];
 
-  // Manejar click en el fondo del canvas para deseleccionar
-  const handleCanvasClick = useCallback(
-    (e: React.MouseEvent) => {
-      // Solo deseleccionar si se hace click directamente en el canvas
-      if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.canvasArea) {
-        onSelectNode(null);
-      }
-    },
-    [onSelectNode]
-  );
-
-  // Manejar drop de nuevos elementos desde el AddElementPanel
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      const nodeType = e.dataTransfer.getData('application/node-type');
-      
-      if (nodeType) {
-        const layersStore = useLayersStore.getState();
-        layersStore.addNode(nodeType as any, null);
-      }
-    },
-    []
-  );
-
-  // Permitir drop en el canvas
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  }, []);
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    // Deselect when clicking canvas background
+    if (e.target === e.currentTarget) {
+      onSelectNode(null);
+    }
+  };
 
   return (
-    <div
-      ref={canvasRef}
-      className="canvas-renderer"
-      data-canvas-area="true"
-      onClick={handleCanvasClick}
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-    >
-      {/* Área de contenido del documento */}
-      <div className="canvas-renderer__document">
-        {/* Indicador de documento vacío */}
-        {(!nodes || nodes.length === 0) && (
-          <div className="canvas-renderer__empty">
-            <div className="canvas-renderer__empty-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="12" y1="18" x2="12" y2="12" />
-                <line x1="9" y1="15" x2="15" y2="15" />
-              </svg>
-            </div>
-            <h3 className="canvas-renderer__empty-title">Empty Document</h3>
-            <p className="canvas-renderer__empty-text">
-              Drag elements from the left panel or click "Add Elements" to start building your document.
-            </p>
-          </div>
-        )}
+    <div className="flex-1 flex flex-col h-full bg-[#f3f4f6] min-w-0 select-none">
+      {/* Canvas Toolbar (Header of the workspace) */}
+      <div className="h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-10 shrink-0">
+        
+        {/* Left Side: Page Selector Dropdown */}
+        <div className="relative">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold hover:bg-gray-100 transition-colors text-gray-700">
+            <Home className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
+            <span>{currentPage?.title || 'Homepage'}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
+          </button>
+        </div>
 
-        {/* Renderizado de nodos */}
-        {nodes.map((node) => (
-          <CanvasNode
-            key={node.id}
-            node={node}
-            depth={0}
-            isSelected={node.id === selectedNodeId}
-            onSelect={onSelectNode}
-            isDragging={isDragging}
-          />
-        ))}
+        {/* Center: Device Selector (Pill format) */}
+        <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200">
+          {(['desktop', 'tablet', 'phone'] as const).map((d) => (
+            <button
+              key={d}
+              onClick={() => setDevice(d)}
+              className={cn(
+                'px-4 py-1 text-xs font-semibold rounded-md transition-all select-none',
+                device === d
+                  ? 'bg-white text-gray-800 shadow-xs'
+                  : 'text-gray-500 hover:text-gray-800'
+              )}
+            >
+              {d === 'desktop' ? 'Desktop' : d === 'tablet' ? 'Tablet' : 'Phone'}
+            </button>
+          ))}
+        </div>
+
+        {/* Right Side: Zoom and Undo/Redo */}
+        <div className="flex items-center gap-2">
+          {/* Zoom */}
+          <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors bg-white">
+            <span>{zoom}%</span>
+            <ChevronDown className="w-3 h-3 text-gray-400 stroke-[2.2]" />
+          </button>
+
+          <div className="h-4 w-[1px] bg-gray-200 mx-1" />
+
+          {/* Undo/Redo */}
+          <div className="flex items-center gap-0.5">
+            <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-700">
+              <Undo2 className="w-4 h-4 stroke-[2.2]" />
+            </button>
+            <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-700">
+              <Redo2 className="w-4 h-4 stroke-[2.2]" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Indicador de arrastre sobre el canvas */}
-      <div className="canvas-renderer__drop-indicator" data-canvas-area="true">
-        <span data-canvas-area="true">Drop here to add element</span>
+      {/* Canvas workspace area */}
+      <div 
+        className="flex-1 overflow-auto p-8 flex justify-center items-start bg-[#f3f4f6]"
+        onClick={handleCanvasClick}
+      >
+        <div
+          className={cn(
+            "bg-white rounded-lg shadow-md border border-gray-200 transition-all duration-300 min-h-[calc(100vh-180px)] overflow-hidden",
+            isDragging && "border-blue-300 ring-2 ring-blue-100"
+          )}
+          style={{
+            width: deviceWidths[device],
+            maxWidth: '100%',
+          }}
+        >
+          {/* Render nodes recursively */}
+          {nodes.length > 0 ? (
+            nodes.map((node) => (
+              <CanvasNode
+                key={node.id}
+                node={node}
+                selectedNodeId={selectedNodeId}
+                onSelectNode={onSelectNode}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400">
+              <p className="text-sm font-semibold">No nodes in project</p>
+              <p className="text-xs text-gray-400 mt-1">Select layers panel to add elements.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -9,12 +9,11 @@ import { useLayersStore } from '../layers/layer-store';
 import CanvasRenderer from '../canvas/canvasRendered';
 import { LayersPanel } from '../layers/LayersPanel';
 import { PropertiesPanel } from '../properties/PropertiesPanel';
-import { AddElementPanel } from '../addElementPanel';
+import  AddElementPanel  from '../addElementPanel';
 import HeaderBar  from '../HeaderBar';
 import InlineTextEditor from '../inlineTextEditor';
 import type { TNode } from '../../types';
 import { findNodeById } from '../../lib/utils';
-import { Import } from 'lucide-react';
 
 interface EditorAppProps {
   projectId: string;
@@ -72,14 +71,69 @@ export default function EditorApp({ projectId }: EditorAppProps) {
         }
       } catch (error) {
         console.error('Error loading project:', error);
+        
+        const bodyId = 'body-node';
+        const sectionId = 'section-node';
+        const textId = 'text-node';
+
+        const defaultNodes: TNode[] = [
+          {
+            id: bodyId,
+            type: 'container',
+            name: 'Body',
+            content: '',
+            children: [
+              {
+                id: sectionId,
+                type: 'container',
+                name: 'Section',
+                content: '',
+                children: [
+                  {
+                    id: textId,
+                    type: 'paragraph',
+                    name: 'Text',
+                    content: 'Text',
+                    children: [],
+                    parentId: sectionId,
+                    depth: 2,
+                    index: 0,
+                    styles: {},
+                    attributes: {},
+                    isVisible: true,
+                    isLocked: false,
+                  }
+                ],
+                parentId: bodyId,
+                depth: 1,
+                index: 0,
+                styles: {},
+                attributes: {},
+                isVisible: true,
+                isLocked: false,
+              }
+            ],
+            parentId: null,
+            depth: 0,
+            index: 0,
+            styles: {},
+            attributes: {},
+            isVisible: true,
+            isLocked: false,
+          }
+        ];
+
         layersStore.setProject({
           id: projectId,
           name: 'Untitled Document',
-          nodes: [],
+          nodes: defaultNodes,
           collectionId: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
+        
+        // Seleccionar Body por defecto para que coincida con el diseño
+        layersStore.selectNode(bodyId);
       } finally {
         setLoading(false);
       }
@@ -168,7 +222,7 @@ export default function EditorApp({ projectId }: EditorAppProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0f0f1a]">
+      <div className="flex items-center justify-center h-screen">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-[#2e2e4e] border-t-[#6c6cf0] rounded-full animate-spin" />
           <p className="text-sm text-[#8a8aaa]">Loading editor...</p>
@@ -178,16 +232,12 @@ export default function EditorApp({ projectId }: EditorAppProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f1a]">
+    <div className="flex flex-col h-screen ">
        <HeaderBar />
         
       <div className="flex flex-1 overflow-hidden">
-        {/* 
-          AddElementPanel - Se comunica directamente con el store
-          No necesita props, igual que en Ycode 
-        */}
-       
-        <AddElementPanel />
+        {/* Panel de Capas - Se comunica con el store (Izquierda) */}
+        <LayersPanel />
 
         {/* Área central: Canvas con Drag & Drop */}
         <DndContext
@@ -197,7 +247,7 @@ export default function EditorApp({ projectId }: EditorAppProps) {
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
-          <div className="flex-1 relative overflow-auto bg-[#1a1a2e]">
+          <div className="flex-1 relative overflow-auto bg-[#f3f4f6]">
             <CanvasRenderer
               nodes={layersStore.nodes}
               selectedNodeId={layersStore.selectedNodeId}
@@ -209,8 +259,8 @@ export default function EditorApp({ projectId }: EditorAppProps) {
           {/* Overlay del elemento arrastrado */}
           <DragOverlay>
             {activeDragNode ? (
-              <div className="px-4 py-2 bg-[#3a3a6a] border border-[#5a5a9a] rounded-lg shadow-lg cursor-grabbing">
-                <span className="text-sm font-medium text-white">
+              <div className="px-4 py-2 bg-blue-600 border border-blue-500 rounded-lg shadow-lg cursor-grabbing">
+                <span className="text-sm font-medium text-white font-semibold">
                   {activeDragNode.name}
                 </span>
               </div>
@@ -218,29 +268,10 @@ export default function EditorApp({ projectId }: EditorAppProps) {
           </DragOverlay>
         </DndContext>
 
-        {/* Panel de Capas - Se comunica con el store */}
-        <LayersPanel
-          nodes={layersStore.nodes}
-          selectedNodeId={layersStore.selectedNodeId}
-          hoveredNodeId={layersStore.hoveredNodeId}
-          expandedNodes={layersStore.expandedNodes}
-          onSelectNode={(nodeId) => layersStore.selectNode(nodeId)}
-          onHoverNode={(nodeId) => layersStore.hoverNode(nodeId)}
-          onDeleteNode={(nodeId) => layersStore.removeNode(nodeId)}
-          onDuplicateNode={(nodeId) => layersStore.duplicateNode(nodeId)}
-          onToggleVisibility={(nodeId, isVisible) => layersStore.updateNode(nodeId, { isVisible })}
-          onToggleLock={(nodeId, isLocked) => layersStore.updateNode(nodeId, { isLocked })}
-          onToggleExpand={(nodeId) => layersStore.toggleExpanded(nodeId)}
-          onMoveNode={(fromIndex, toIndex) => layersStore.moveNode(fromIndex, toIndex)}
-          isDragging={layersStore.isDragging}
-        />
-
-        {/* Panel de Propiedades - Se comunica con el store */}
-        <PropertiesPanel
-          selectedNode={layersStore.getSelectedNode()}
-          onUpdateNode={(nodeId, updates) => layersStore.updateNode(nodeId, updates)}
-          project={layersStore.project}
-        />
+        {/* 
+          AddElementPanel (PropertiesPanel) - Se comunica directamente con el store (Derecha)
+        */}
+        <AddElementPanel />
       </div>
 
       {/* Editor de texto inline */}
