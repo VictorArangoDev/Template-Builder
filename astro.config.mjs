@@ -6,6 +6,7 @@ import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 
 import node from '@astrojs/node';
+import { fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,8 +15,16 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()]
   },
-
+  
   adapter: node({
-    mode: 'standalone'
-  })
+    mode: 'standalone',
+    
+  }),
+  
+  fonts: [{
+    provider: fontProviders.fontsource(),
+    name: "Geist Mono",
+    cssVariable: "--font-sans",
+  }]
+  
 });

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Globe, Play, ChevronDown } from 'lucide-react'
+import { Globe, Play } from 'lucide-react'
 import { cn } from '../lib/utils';
 
 interface NavItemProps {
@@ -28,11 +28,12 @@ function NavItem({ icon, label, active, onClick }: NavItemProps) {
 
 function LogoIcon() {
   return (
-    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-sm select-none">
-      <svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7 0.5L1 8.5H5.5L4.5 14.5L11 6.5H6.5L7 0.5Z" fill="white" stroke="white" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    </div>
+    <></>
+    // <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-sm select-none">
+    //   <svg width="12" height="15" viewBox="0 0 12 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+    //     <path d="M7 0.5L1 8.5H5.5L4.5 14.5L11 6.5H6.5L7 0.5Z" fill="white" stroke="white" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
+    //   </svg>
+    // </div>
   )
 }
 
@@ -57,16 +58,7 @@ function CMSIcon() {
   )
 }
 
-function FormsIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="2" y="2" width="12" height="12" rx="1"/>
-      <line x1="5" y1="5" x2="11" y2="5"/>
-      <line x1="5" y1="8" x2="11" y2="8"/>
-      <line x1="5" y1="11" x2="8" y2="11"/>
-    </svg>
-  )
-}
+
 
 export default function HeaderBar() {
   const [activeNav, setActiveNav] = useState('design')
@@ -94,32 +86,12 @@ export default function HeaderBar() {
             active={activeNav === 'cms'}
             onClick={() => setActiveNav('cms')}
           />
-          <NavItem
-            icon={<FormsIcon />}
-            label="Forms"
-            active={activeNav === 'forms'}
-            onClick={() => setActiveNav('forms')}
-          />
         </nav>
       </div>
 
       {/* Center section */}
       <div className="hidden lg:flex items-center gap-4">
-        {/* Language */}
-        <div className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 cursor-pointer transition-colors px-1 py-1 rounded">
-          <Globe className="w-4 h-4 stroke-[1.8]" />
-          <span className="font-semibold text-xs tracking-wider">EN</span>
-        </div>
-
-        {/* URL Display */}
-        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-1.5 text-xs text-gray-400 font-mono tracking-tight select-all">
-          <span>http://localhost:3002</span>
-        </div>
-
-        {/* Update Available Badge */}
-        <span className="bg-blue-50 text-blue-600 border border-blue-100 rounded-full px-3 py-1 text-[11px] font-bold shadow-xs select-none">
-          Update available
-        </span>
+       
       </div>
 
       {/* Right section */}

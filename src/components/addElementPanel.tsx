@@ -96,7 +96,7 @@ interface FieldRowProps {
 function FieldRow({ label, children }: FieldRowProps) {
   return (
     <div className="flex items-center justify-between gap-4 py-1">
-      <span className="text-xs font-semibold text-gray-400 min-w-[50px] uppercase tracking-wider">
+      <span className="text-xs font-semibold text-gray-400 min-w-12.5 uppercase tracking-wider">
         {label}
       </span>
       <div className="flex-1 flex justify-end">{children}</div>

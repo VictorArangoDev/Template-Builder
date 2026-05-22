@@ -24,7 +24,7 @@ export default function CanvasNode({
   const getInlineStyles = () => {
     const inlineStyles: React.CSSProperties = {};
     if (!node.styles) return inlineStyles;
-    
+
     Object.entries(node.styles).forEach(([key, val]) => {
       // Map basic key names if they contain dashes
       const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
@@ -48,7 +48,7 @@ export default function CanvasNode({
         className={cn(
           'relative transition-all duration-150',
           isBody
-            ? 'w-full min-h-[500px] bg-white p-8 border-none focus:outline-none'
+            ? 'w-full min-h-full bg-white p-8 border-none focus:outline-none'
             : 'border border-dashed border-gray-200 p-4 rounded-md my-2 hover:border-blue-300',
           isSelected && (isBody ? 'outline-2 outline-blue-600 -outline-offset-2' : 'outline-2 outline-blue-600 outline-offset-1')
         )}
@@ -59,7 +59,7 @@ export default function CanvasNode({
             {node.name}
           </div>
         )}
-        
+
         {node.children && node.children.length > 0 ? (
           node.children.map((child) => (
             <CanvasNode
@@ -127,7 +127,7 @@ export default function CanvasNode({
   // Render image node
   if (node.type === 'image') {
     return (
-      <div 
+      <div
         onClick={handleClick}
         className={cn(
           'relative my-3 p-1 rounded hover:bg-blue-50/30 transition-all overflow-hidden flex justify-center',
@@ -155,9 +155,9 @@ export default function CanvasNode({
       <div className="relative inline-block my-1 mx-0.5">
         <span
           onClick={handleClick}
-          style={style}
+          // style={style}
           className={cn(
-            'inline-block px-2 py-0.5 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-mono font-semibold rounded cursor-pointer transition-all hover:bg-indigo-100',
+            'inline-block text-black text-xs font-mono ',
             isSelected && 'outline-2 outline-blue-600'
           )}
         >

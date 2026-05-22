@@ -42,6 +42,10 @@ export default function CanvasRenderer({
     }
   };
 
+  const handleCanvasPagesToggle = () =>{
+    //TODO: Funcion para la seleccion de pagins.
+  }
+
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f3f4f6] min-w-0 select-none">
       {/* Canvas Toolbar (Header of the workspace) */}
@@ -49,31 +53,20 @@ export default function CanvasRenderer({
         
         {/* Left Side: Page Selector Dropdown */}
         <div className="relative">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold hover:bg-gray-100 transition-colors text-gray-700">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold hover:bg-gray-100 transition-colors text-gray-700"
+          onClick={
+            handleCanvasPagesToggle
+          }
+          
+          >
             <Home className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
-            <span>{currentPage?.title || 'Homepage'}</span>
+            <span>{currentPage?.title || 'Page'}</span>
             <ChevronDown className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
+            
           </button>
         </div>
 
-        {/* Center: Device Selector (Pill format) */}
-        <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200">
-          {(['desktop', 'tablet', 'phone'] as const).map((d) => (
-            <button
-              key={d}
-              onClick={() => setDevice(d)}
-              className={cn(
-                'px-4 py-1 text-xs font-semibold rounded-md transition-all select-none',
-                device === d
-                  ? 'bg-white text-gray-800 shadow-xs'
-                  : 'text-gray-500 hover:text-gray-800'
-              )}
-            >
-              {d === 'desktop' ? 'Desktop' : d === 'tablet' ? 'Tablet' : 'Phone'}
-            </button>
-          ))}
-        </div>
-
+       
         {/* Right Side: Zoom and Undo/Redo */}
         <div className="flex items-center gap-2">
           {/* Zoom */}
@@ -107,7 +100,8 @@ export default function CanvasRenderer({
             isDragging && "border-blue-300 ring-2 ring-blue-100"
           )}
           style={{
-            width: deviceWidths[device],
+            width: '816px',
+            height:'1056px',
             maxWidth: '100%',
           }}
         >

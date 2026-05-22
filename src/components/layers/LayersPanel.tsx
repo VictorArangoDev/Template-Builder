@@ -73,6 +73,8 @@ function TreeItem({
     return <TextIcon />;
   }
 
+  
+
   return (
     <div className="group relative">
       <div
@@ -155,7 +157,7 @@ function TreeItem({
 }
 
 export function LayersPanel() {
-  const [activeTab, setActiveTab] = useState<'layers' | 'pages'>('layers')
+  const [activeTab, setActiveTab] = useState<'layers' | 'pages' | 'components'>('layers')
   const [showAddDropdown, setShowAddDropdown] = useState(false)
   
   // Zustand stores
@@ -220,6 +222,17 @@ export function LayersPanel() {
           >
             Pages
           </button>
+          <button
+            onClick={() => setActiveTab('components')}
+            className={cn(
+              'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all select-none',
+              activeTab === 'components'
+                ? 'bg-white text-gray-800 shadow-sm'
+                : 'text-gray-500 hover:text-gray-800'
+            )}
+          >
+            Components
+          </button>
         </div>
       </div>
 
@@ -274,7 +287,7 @@ export function LayersPanel() {
             )}
           </div>
         </>
-      ) : (
+      ) :  activeTab === 'pages' ? (
         <>
           {/* Pages header */}
           <div className="flex items-center justify-between px-4 py-3">
@@ -286,7 +299,7 @@ export function LayersPanel() {
                 const id = `page-${Date.now()}`;
                 designStore.setPages([
                   ...designStore.pages,
-                  { id, title: `New Page`, slug: `new-page-${designStore.pages.length}`, nodes: [] }
+                  { id, title: `page`, slug: `new-page-${designStore.pages.length}`, nodes: [] }
                 ]);
               }}
               className="p-1 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-700"
@@ -319,7 +332,26 @@ export function LayersPanel() {
             })}
           </div>
         </>
-      )}
+      ): (
+          <>
+          {/* Layers header */}
+          <div className="flex items-center justify-between px-4 py-3 relative">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+              Layers
+            </span>
+            <button 
+              onClick={() => setShowAddDropdown(!showAddDropdown)}
+              className="p-1 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-700"
+              title="Add element"
+            >
+              <Plus className="w-4 h-4 stroke-[2.2]" />
+            </button>            
+          </div>
+        </>
+      ) }
+
+      
+
     </aside>
   )
 }
