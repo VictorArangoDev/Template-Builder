@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 
 interface DesignState {
+  nodes: any[];
   pages: any[];
   activePage: string | null;
   currentPageId: string | null;
@@ -10,9 +11,12 @@ interface DesignState {
   setActivePage: (pageId: string) => void;
   addPage: (page: any) => void;
   removePage: (pageId: string) => void;
+  updateNodePosition: (nodeId: string, x: number, y: number) => void;
+
 }
 
 export const useDesignStore = create<DesignState>((set) => ({
+  nodes:[],
   pages: [],
   activePage: null,
   currentPageId:null,
@@ -24,4 +28,13 @@ export const useDesignStore = create<DesignState>((set) => ({
     pages: state.pages.filter(p => p.id !== pageId),
     activePage: state.activePage === pageId ? null : state.activePage
   })),
+  updateNodePosition: (nodeId: string, x: number, y: number) => {
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, x, y }
+          : node
+      ),
+    }));
+  },
 }));

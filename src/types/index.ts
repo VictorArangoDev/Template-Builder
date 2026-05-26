@@ -21,6 +21,9 @@ export interface TNode {
   parentId: string | null;
   depth: number;
   index: number;
+  x?:number;
+  y?:number;
+  zIndex?:number;
   styles: Record<string, string>;
   attributes: Record<string, any>;
   variableKey?: string;

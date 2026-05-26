@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, ChevronDown, Undo2, Redo2 } from 'lucide-react';
+import { Home, ChevronDown, Undo2, Redo2, Plus, Minus } from 'lucide-react';
 import { useDesignStore } from '../../stores/useDesignStore';
 import CanvasNode from './canvasNode';
 import type { TNode } from '../../types';
@@ -128,7 +128,7 @@ export default function CanvasRenderer({
 
         {/* Right Side: Zoom and Undo/Redo */}
         <div className="flex items-center gap-2">
-          {/* Zoom con menú desplegable */}
+         
           <div className="relative" ref={zoomRef}>
             <button 
               className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors bg-white"
@@ -162,14 +162,14 @@ export default function CanvasRenderer({
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-700"
               disabled={zoom <= 25}
             >
-              <span className="text-sm font-bold">-</span>
+             <Minus className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
             </button>
             <button 
               onClick={handleZoomIn}
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-700"
               disabled={zoom >= 200}
             >
-              <span className="text-sm font-bold">+</span>
+             <Plus className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
             </button>
           </div>
 
@@ -203,6 +203,7 @@ export default function CanvasRenderer({
             maxWidth: '100%',
             transform: `scale(${zoom / 100})`,
             transformOrigin: 'center top',
+            position:'relative',
           }}
         >
           {/* Render nodes recursively */}
