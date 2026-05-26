@@ -130,8 +130,8 @@ function TreeItem({
               onDuplicate();
             }}
             className={cn(
-              'p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600',
-              selected && 'hover:bg-blue-700 text-white hover:text-white'
+              'p-1 rounded hover:bg-gray-100 text-black hover:text-gray-600',
+              selected && 'hover:bg-blue-700 text-black hover:text-white'
             )}
             title="Duplicate"
           >
@@ -144,7 +144,7 @@ function TreeItem({
             }}
             className={cn(
               'p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500',
-              selected && 'hover:bg-red-600 text-white hover:text-white'
+              selected && 'hover:bg-red-600 text-black hover:text-white'
             )}
             title="Delete"
           >
@@ -289,49 +289,65 @@ export function LayersPanel() {
         </>
       ) :  activeTab === 'pages' ? (
         <>
-          {/* Pages header */}
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-              Pages
-            </span>
-            <button 
-              onClick={() => {
-                const id = `page-${Date.now()}`;
-                designStore.setPages([
-                  ...designStore.pages,
-                  { id, title: `page`, slug: `new-page-${designStore.pages.length}`, nodes: [] }
-                ]);
-              }}
-              className="p-1 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-700"
-              title="Create new page"
-            >
-              <Plus className="w-4 h-4 stroke-[2.2]" />
-            </button>
-          </div>
+  {/* Pages header */}
+  <div className="flex items-center justify-between px-4 py-3">
+    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+      Pages
+    </span>
+    <button 
+      onClick={() => {
+        const pageName = prompt('Nombre de la nueva página:', 'Nueva página');
+        if (pageName && pageName.trim()) {
+          const id = `page-${Date.now()}`;
+          const slug = pageName
+            .toLowerCase()
+            .trim()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
+            .replace(/[^a-z0-9]+/g, '-') // Reemplazar espacios y caracteres especiales con guiones
+            .replace(/^-+|-+$/g, ''); // Eliminar guiones al inicio y final
+          
+          designStore.setPages([
+            ...designStore.pages,
+            { 
+              id, 
+              title: pageName.trim(), 
+              slug: slug || `new-page-${designStore.pages.length}`,
+              nodes: [] 
+            }
+          ]);
+        }
+      }}
+      className="p-1 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-700"
+      title="Create new page"
+    >
+      <Plus className="w-4 h-4 stroke-[2.2]" />
+    </button>
+  </div>
 
-          {/* Pages list */}
-          <div className="flex-1 overflow-auto py-1">
-            {designStore.pages.map((page) => {
-              const isActive = designStore.currentPageId === page.id;
-              return (
-                <div
-                  key={page.id}
-                  onClick={() => designStore.setCurrentPage(page.id)}
-                  className={cn(
-                    'flex items-center gap-2 py-1.5 px-3 cursor-pointer transition-all rounded-md mx-2 my-0.5 text-xs font-semibold',
-                    isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'hover:bg-gray-100 text-gray-600'
-                  )}
-                >
-                  <FileText className="w-4 h-4 text-gray-400" />
-                  <span className="truncate flex-1">{page.title}</span>
-                  <span className="text-[10px] text-gray-400 font-normal">/{page.slug}</span>
-                </div>
-              )
-            })}
-          </div>
-        </>
+  {/* Pages list */}
+  <div className="flex-1 overflow-auto py-1">
+    {designStore.pages.map((page) => {
+      const isActive = designStore.currentPageId === page.id;
+      return (
+        <div
+          key={page.id}
+          // onClick={() => designStore.setCurrentPage(page.id)}
+          className={cn(
+            'flex items-center gap-2 py-1.5 px-3 cursor-pointer transition-all rounded-md mx-2 my-0.5 text-xs font-semibold',
+            isActive
+              ? 'bg-blue-50 text-blue-700'
+              : 'hover:bg-gray-100 text-gray-600'
+          )}
+        >
+          <FileText className="w-4 h-4 text-gray-400" />
+          <span className="truncate flex-1">{page.title}</span>
+          {/* <span className="text-[10px] text-gray-400 font-normal">/{page.slug}</span> */}
+        </div>
+      )
+    })}
+  </div>
+</>
       ): (
           <>
           {/* Layers header */}
