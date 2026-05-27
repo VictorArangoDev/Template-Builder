@@ -130,8 +130,8 @@ function TreeItem({
               onDuplicate();
             }}
             className={cn(
-              'p-1 rounded hover:bg-gray-100 text-black hover:text-gray-600',
-              selected && 'hover:bg-blue-700 text-black hover:text-white'
+             'p-1 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-500',
+              selected && 'hover:bg-blue-600 text-black hover:text-white'
             )}
             title="Duplicate"
           >

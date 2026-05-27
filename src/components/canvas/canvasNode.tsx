@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils'
 import type { TNode } from '../../types'
 
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
-import { useDesignStore } from '../../stores/useDesignStore'
+import { useLayersStore } from '../layers/layer-store'
 
 interface CanvasNodeProps {
   node: TNode
@@ -17,23 +17,20 @@ export default function CanvasNode({
   onSelectNode,
 }: CanvasNodeProps) {
   const isSelected = selectedNodeId === node.id;
-  const updateNodePosition = useDesignStore((state) => state.updateNodePosition);
+  const updateNode = useLayersStore((state) => state.updateNode);
 
+  const isBody = node.name.toLowerCase() === 'body';
 
-   // Configurar drag and drop solo para nodos seleccionados
-  const { isDragging, position, handlers, cursor } = useDragAndDrop({
+  // Configurar drag and drop
+  const { isDragging, handlers, cursor, elementRef } = useDragAndDrop({
     nodeId: node.id,
     initialX: node.x || 0,
     initialY: node.y || 0,
-    onDragMove: (x, y) => {
-      // Actualizar posición en tiempo real mientras se arrastra
-      updateNodePosition(node.id, x, y);
-    },
     onDragEnd: (x, y) => {
-      // Guardar posición final
-      updateNodePosition(node.id, x, y);
+      // Persistir posición final en el store que realmente renderiza el canvas
+      updateNode(node.id, { x, y });
     },
-    disabled: !isSelected || node.name.toLowerCase() === 'body',
+    disabled: !isSelected || isBody,
   });
 
   const handleClick = (e: React.MouseEvent) => {
@@ -41,7 +38,6 @@ export default function CanvasNode({
     onSelectNode(node.id);
   };
 
-  // Convert style properties into react-compatible camelCase inline styles
   const getInlineStyles = () => {
     const inlineStyles: React.CSSProperties = {};
     if (!node.styles) return inlineStyles;
@@ -54,46 +50,37 @@ export default function CanvasNode({
     return inlineStyles;
   };
 
-  // Construir el estilo base con posicionamiento absoluto
   const getPositionStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = {
-      position: 'absolute',
+      position: isBody ? 'relative' : 'absolute',
+      top: 0,
+      left: 0,
       ...getInlineStyles(),
     };
 
-       // Usar la posición actual del drag si está activo
-    if (isDragging && isSelected) {
-      styles.left = `${position.x}px`;
-      styles.top = `${position.y}px`;
-    } else {
-      if (node.x !== undefined) styles.left = `${node.x}px`;
-      if (node.y !== undefined) styles.top = `${node.y}px`;
+    // Inicializar la transformación de coordenadas
+    if (!isBody) {
+      styles.transform = `translate(${node.x || 0}px, ${node.y || 0}px)`;
     }
 
     if (node.zIndex !== undefined) styles.zIndex = node.zIndex;
     
-    // Agregar cursor para drag
-    if (isSelected && node.name.toLowerCase() !== 'body') {
+    if (isSelected && !isBody) {
       styles.cursor = cursor;
     }
 
     return styles;
   };
 
-
   const style = getPositionStyles();
 
-  // Render container node
+  // 1. RENDER CONTAINER NODE
   if (node.type === 'container') {
-    const isBody = node.name.toLowerCase() === 'body';
-    
-    // Para el body, no usamos posición absoluta
     if (isBody) {
       return (
         <div
-          style={{ ...style, position: 'relative' }}
+          style={style}
           onClick={handleClick}
-          {...handlers}
           className={cn(
             'relative transition-all duration-150 w-full min-h-full bg-white',
             isSelected && 'outline-2 outline-blue-600 -outline-offset-2'
@@ -109,7 +96,7 @@ export default function CanvasNode({
               />
             ))
           ) : (
-            <div className="absolute  text-center py-6 text-[11px] text-gray-400 font-semibold border border-dashed border-gray-200 bg-gray-50/50 rounded-sm">
+            <div className="absolute text-center py-6 text-[11px] text-gray-400 font-semibold border border-dashed border-gray-200 bg-gray-50/50 rounded-sm">
               Empty {node.name}
             </div>
           )}
@@ -117,22 +104,21 @@ export default function CanvasNode({
       );
     }
 
-    // Container normal con posición absoluta
     return (
       <div
+        ref={elementRef as React.RefObject<HTMLDivElement>}
         style={style}
         onClick={handleClick}
         {...handlers}
         className={cn(
-          'transition-all duration-150',
+          'transition-shadow duration-150',
           'border border-dashed border-gray-200 rounded-md hover:border-blue-300',
           isSelected && 'outline-2 outline-blue-600 outline-offset-1',
-          isDragging && 'opacity-80 shadow-lg scale-[1.02] rotate-1 cursor-grabbing'
+          isDragging && 'opacity-80 shadow-lg scale-[1.01] cursor-grabbing compliance-layer'
         )}
       >
-        {/* Visual selector border line for selected node */}
         {isSelected && (
-          <div className="absolute  bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs z-20 pointer-events-none select-none whitespace-nowrap">
+          <div className="absolute -top-5 left-0 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs z-20 pointer-events-none select-none whitespace-nowrap">
             {node.name}
           </div>
         )}
@@ -157,12 +143,17 @@ export default function CanvasNode({
     );
   }
 
-  // Render text/paragraph node
+  // 2. RENDER PARAGRAPH NODE
   if (node.type === 'paragraph') {
     return (
-      <div style={style} className="relative group/text">
+      <div 
+        ref={elementRef as React.RefObject<HTMLDivElement>}
+        style={style} 
+        onClick={handleClick}
+        {...handlers}
+        className="relative group/text"
+      >
         <p
-          onClick={handleClick}
           className={cn(
             'text-gray-700 text-sm leading-relaxed p-1 hover:bg-blue-50/30 rounded transition-colors m-0',
             isSelected && 'outline-2 outline-blue-600 rounded-sm',
@@ -180,12 +171,17 @@ export default function CanvasNode({
     );
   }
 
-  // Render heading node
+  // 3. RENDER HEADING NODE
   if (node.type === 'heading') {
     return (
-      <div style={style} className="relative group/text">
+      <div 
+        ref={elementRef as React.RefObject<HTMLDivElement>}
+        style={style} 
+        onClick={handleClick}
+        {...handlers}
+        className="relative group/text"
+      >
         <h2
-          onClick={handleClick}
           className={cn(
             'text-gray-900 text-lg font-bold p-1 hover:bg-blue-50/30 rounded transition-colors m-0',
             isSelected && 'outline-2 outline-blue-600 rounded-sm',
@@ -203,12 +199,14 @@ export default function CanvasNode({
     );
   }
 
-  // Render image node
+  // 4. RENDER IMAGE NODE
   if (node.type === 'image') {
     return (
       <div
+        ref={elementRef as React.RefObject<HTMLDivElement>}
         style={style}
         onClick={handleClick}
+        {...handlers}
         className={cn(
           'relative p-1 rounded hover:bg-blue-50/30 transition-all overflow-hidden',
           isSelected && 'outline-2 outline-blue-600 rounded-sm',
@@ -230,12 +228,17 @@ export default function CanvasNode({
     );
   }
 
-  // Render variable node
+  // 5. RENDER VARIABLE NODE
   if (node.type === 'variable') {
     return (
-      <div style={style} className="relative inline-block">
+      <div 
+        ref={elementRef as React.RefObject<HTMLDivElement>}
+        style={style}
+        onClick={handleClick}
+        {...handlers}
+        className="relative inline-block"
+      >
         <span
-          onClick={handleClick}
           className={cn(
             'inline-block text-black text-xs font-mono',
             isSelected && 'outline-2 outline-blue-600',
@@ -253,14 +256,15 @@ export default function CanvasNode({
     );
   }
 
-  // Fallback for other nodes
+  // FALLBACK FOR OTHER NODES
   return (
     <div
+      ref={elementRef as React.RefObject<HTMLDivElement>}
       onClick={handleClick}
       style={style}
       {...handlers}
       className={cn(
-        'p-3 border border-gray-200 rounded text-xs font-semibold hover:border-blue-400 cursor-pointer',
+        'p-3 border border-gray-200 rounded text-xs font-semibold hover:border-blue-400',
         isSelected && 'border-blue-600 ring-2 ring-blue-100',
         isDragging && 'opacity-80 shadow-lg cursor-grabbing'
       )}
