@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, ChevronDown, Undo2, Redo2, Plus, Minus } from 'lucide-react';
+import { Home, ChevronDown, Undo2, Redo2, Plus, Minus, Eye, Code, Download, X } from 'lucide-react';
 import { useDesignStore } from '../../stores/useDesignStore';
 import CanvasNode from './canvasNode';
 import type { TNode } from '../../types';
 import { cn } from '../../lib/utils';
+import { buildExportHtmlDocument, buildExportHtmlDocumentFromPages } from '../../lib/exportHtml';
 import './canvas.css';
 
 interface CanvasRendererProps {
@@ -48,6 +49,7 @@ export default function CanvasRenderer({
   const menuRef = useRef<HTMLDivElement>(null);
   
   const designStore = useDesignStore();
+  const selectPage = useDesignStore((state) => state.selectPage);
   const currentPage = designStore.pages.find(p => p.id === designStore.currentPageId) || designStore.pages[0];
   const listPages = designStore.pages;
 
@@ -87,9 +89,31 @@ export default function CanvasRenderer({
     setIsPagesOpen(!isPagesOpen);
   };
 
-  const handlePageSelect = (page: any) => {
-    designStore.setCurrentPage(page.id);
-    setIsPagesOpen(false);
+  // const handlePageSelect = (page: any) => {
+  //   designStore.setCurrentPageId(page.id);
+  //   setIsPagesOpen(false);
+  // };
+
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const exportHtml = (designStore.pages?.length ?? 0) > 0
+    ? buildExportHtmlDocumentFromPages(designStore.pages as any, 'Export')
+    : buildExportHtmlDocument(nodes, currentPage?.title || 'Export');
+
+  const handleCopyHtml = async () => {
+    await navigator.clipboard.writeText(exportHtml);
+  };
+
+  const handleDownloadHtml = () => {
+    const blob = new Blob([exportHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(currentPage?.slug || 'page')}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -114,7 +138,7 @@ export default function CanvasRenderer({
               {listPages.map((page) => (
                 <button
                   key={page.id}
-                  onClick={() => handlePageSelect(page)}
+                  onClick={() => selectPage(page.id)}
                   className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 transition-colors ${
                     currentPage?.id === page.id ? 'bg-gray-50 text-blue-600 font-medium' : 'text-gray-700'
                   }`}
@@ -128,6 +152,26 @@ export default function CanvasRenderer({
 
         {/* Right Side: Zoom and Undo/Redo */}
         <div className="flex items-center gap-2">
+
+          {/* Preview / Export */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsPreviewOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors bg-white"
+              title="Preview"
+            >
+              <Eye className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
+              Preview
+            </button>
+            <button
+              onClick={() => setIsExportOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors bg-white"
+              title="Export HTML"
+            >
+              <Code className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
+              Export
+            </button>
+          </div>
          
           <div className="relative" ref={zoomRef}>
             <button 
@@ -224,6 +268,84 @@ export default function CanvasRenderer({
           )}
         </div>
       </div>
+
+      {/* Preview modal */}
+      {isPreviewOpen && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-6">
+          <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden">
+            <div className="h-11 px-3 flex items-center justify-between border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-semibold text-gray-700">Preview</span>
+              </div>
+              <button
+                className="p-2 hover:bg-gray-100 rounded-md text-gray-500"
+                onClick={() => setIsPreviewOpen(false)}
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 bg-gray-50">
+              <iframe
+                title="preview"
+                className="w-full h-full bg-white"
+                sandbox="allow-same-origin"
+                srcDoc={exportHtml}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export HTML modal */}
+      {isExportOpen && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-6">
+          <div className="bg-white rounded-lg shadow-xl border border-gray-200 w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden">
+            <div className="h-11 px-3 flex items-center justify-between border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <Code className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-semibold text-gray-700">Export HTML</span>
+              </div>
+              <button
+                className="p-2 hover:bg-gray-100 rounded-md text-gray-500"
+                onClick={() => setIsExportOpen(false)}
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="px-3 py-2 border-b border-gray-200 flex items-center gap-2">
+              <button
+                onClick={handleCopyHtml}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors bg-white"
+                title="Copy HTML"
+              >
+                <Code className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
+                Copiar
+              </button>
+              <button
+                onClick={handleDownloadHtml}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors bg-white"
+                title="Download HTML"
+              >
+                <Download className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
+                Descargar
+              </button>
+              <div className="text-xs text-gray-400 ml-auto truncate">
+                {(currentPage?.slug || 'page')}.html
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto bg-gray-50">
+              <pre className="text-[11px] leading-relaxed p-3 whitespace-pre-wrap break-words text-gray-700">
+                {exportHtml}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

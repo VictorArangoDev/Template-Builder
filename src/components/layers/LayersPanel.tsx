@@ -164,6 +164,9 @@ export function LayersPanel() {
   const layersStore = useLayersStore();
   const designStore = useDesignStore();
 
+
+  const selectPage = useDesignStore((state) => state.selectPage);
+
   const toggleNode = (nodeId: string) => {
     layersStore.toggleExpanded(nodeId);
   }
@@ -332,7 +335,7 @@ export function LayersPanel() {
               return (
                 <div
                   key={page.id}
-                  // onClick={() => designStore.setCurrentPage(page.id)}
+                  onClick={() => selectPage(page.id)}
                   className={cn(
                     'flex items-center gap-2 py-1.5 px-3 cursor-pointer transition-all rounded-md mx-2 my-0.5 text-xs font-semibold',
                     isActive
@@ -343,6 +346,7 @@ export function LayersPanel() {
                   <FileText className="w-4 h-4 text-gray-400" />
                   <span className="truncate flex-1">{page.title}</span>
                   {/* <span className="text-[10px] text-gray-400 font-normal">/{page.slug}</span> */}
+                  
                 </div>
               )
             })}

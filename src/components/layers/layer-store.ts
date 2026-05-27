@@ -14,6 +14,7 @@ interface LayersState {
 
   // Acciones
   setProject: (project: TProject) => void;
+  setNodes: (nodes: TNode[]) => void;
   
   // CRUD de nodos
   addNode: (type: string, parentId?: string | null, index?: number) => void;
@@ -48,6 +49,15 @@ export const useLayersStore = create<LayersState>((set, get) => ({
       project,
       nodes: project.nodes || [],
       selectedNodeId: null,
+    });
+  },
+
+  setNodes: (nodes) => {
+    set({
+      nodes: nodes || [],
+      selectedNodeId: null,
+      hoveredNodeId: null,
+      isDragging: false,
     });
   },
 

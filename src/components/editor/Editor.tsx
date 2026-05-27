@@ -1,7 +1,7 @@
 // src/components/EditorApp.tsx
 
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors, type DragStartEvent, type DragEndEvent} from '@dnd-kit/core';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useDesignStore } from '../../stores/useDesignStore';
 import { useEditorStore } from '../../stores/useEditorStore';
 import { useComponentsStore } from '../../stores/useComponentStore';
@@ -22,6 +22,7 @@ interface EditorAppProps {
 export default function EditorApp({ projectId }: EditorAppProps) {
   const [loading, setLoading] = useState(true);
   const [activeDragNode, setActiveDragNode] = useState<TNode | null>(null);
+  const [didInitPages, setDidInitPages] = useState(false);
 
   // Stores de Zustand - siguiendo el patrón de Ycode
   const layersStore = useLayersStore();
@@ -48,7 +49,8 @@ export default function EditorApp({ projectId }: EditorAppProps) {
         const project = await response.json();
         
         if (project) {
-          designStore.setPages(project.pages || []);
+          const incomingPages = project.pages || [];
+          designStore.setPages(incomingPages);
           componentsStore.setComponents(project.components || []);
           
           layersStore.setProject({
@@ -131,6 +133,16 @@ export default function EditorApp({ projectId }: EditorAppProps) {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
+
+        // Crear una página por defecto y seleccionarla
+        const defaultPage = {
+          id: `page-${Date.now()}`,
+          title: 'Page 1',
+          slug: 'page-1',
+          nodes: defaultNodes,
+        };
+        designStore.setPages([defaultPage]);
+        designStore.setCurrentPageId(defaultPage.id);
         
         // Seleccionar Body por defecto para que coincida con el diseño
         layersStore.selectNode(bodyId);
@@ -139,6 +151,52 @@ export default function EditorApp({ projectId }: EditorAppProps) {
       }
     })();
   }, [projectId]);
+
+  // Inicializar / seleccionar página actual (solo una vez después de cargar)
+  useEffect(() => {
+    if (loading) return;
+    if (didInitPages) return;
+
+    const pages = designStore.pages || [];
+    if (pages.length === 0) {
+      // Si no hay páginas pero sí hay nodos en layers, crear page única con esos nodos
+      const fallbackPage = {
+        id: `page-${Date.now()}`,
+        title: 'Page 1',
+        slug: 'page-1',
+        nodes: layersStore.nodes,
+      };
+      designStore.setPages([fallbackPage]);
+      designStore.setCurrentPageId(fallbackPage.id);
+      setDidInitPages(true);
+      return;
+    }
+
+    // Seleccionar la primera si no hay currentPageId
+    if (!designStore.currentPageId) {
+      designStore.setCurrentPageId(pages[0].id);
+    }
+    setDidInitPages(true);
+  }, [loading, didInitPages, designStore.pages, designStore.currentPageId, layersStore.nodes]);
+
+  const currentPageNodes: TNode[] = useMemo(() => {
+    const pageId = designStore.currentPageId;
+    const page = (designStore.pages || []).find((p: any) => p.id === pageId);
+    return (page?.nodes || []) as TNode[];
+  }, [designStore.pages, designStore.currentPageId]);
+
+  // Cuando cambia la página seleccionada, reflejarla en el canvas/layers store
+  useEffect(() => {
+    if (loading) return;
+    layersStore.setNodes(currentPageNodes);
+  }, [loading, designStore.currentPageId]);
+
+  // Persistir cualquier cambio del árbol actual hacia la página actual
+  useEffect(() => {
+    if (loading) return;
+    if (!designStore.currentPageId) return;
+    designStore.updateCurrentPageNodes(layersStore.nodes);
+  }, [loading, designStore.currentPageId, layersStore.nodes]);
 
   // Auto-guardado
   useEffect(() => {

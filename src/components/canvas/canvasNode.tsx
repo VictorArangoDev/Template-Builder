@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../lib/utils'
 import type { TNode } from '../../types'
 
@@ -21,6 +21,19 @@ export default function CanvasNode({
 
   const isBody = node.name.toLowerCase() === 'body';
 
+  const nodeRef = useRef(node);
+  useEffect(() => {
+    nodeRef.current = node;
+  }, [node]);
+
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStartRef = useRef({
+    mouseX: 0,
+    mouseY: 0,
+    width: 0,
+    height: 0,
+  });
+
   // Configurar drag and drop
   const { isDragging, handlers, cursor, elementRef } = useDragAndDrop({
     nodeId: node.id,
@@ -30,8 +43,73 @@ export default function CanvasNode({
       // Persistir posición final en el store que realmente renderiza el canvas
       updateNode(node.id, { x, y });
     },
-    disabled: !isSelected || isBody,
+    disabled: !isSelected || isBody || isResizing,
   });
+
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const el = elementRef.current as HTMLElement | null;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    setIsResizing(true);
+    resizeStartRef.current = {
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      width: rect.width,
+      height: rect.height,
+    };
+  }, [elementRef]);
+
+  const handleResizeMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing) return;
+    const el = elementRef.current as HTMLElement | null;
+    if (!el) return;
+
+    const dx = e.clientX - resizeStartRef.current.mouseX;
+    const dy = e.clientY - resizeStartRef.current.mouseY;
+
+    const nextWidth = Math.max(40, Math.round(resizeStartRef.current.width + dx));
+    const nextHeight = Math.max(40, Math.round(resizeStartRef.current.height + dy));
+
+    // Actualización directa del DOM para que sea fluido
+    el.style.width = `${nextWidth}px`;
+    el.style.height = `${nextHeight}px`;
+  }, [isResizing, elementRef]);
+
+  const handleResizeMouseUp = useCallback(() => {
+    if (!isResizing) return;
+
+    const el = elementRef.current as HTMLElement | null;
+    setIsResizing(false);
+    if (!el) return;
+
+    // Persistir en el árbol (styles), para que sobreviva a re-render/guardado
+    const width = el.style.width || `${Math.round(el.getBoundingClientRect().width)}px`;
+    const height = el.style.height || `${Math.round(el.getBoundingClientRect().height)}px`;
+
+    updateNode(nodeRef.current.id, {
+      styles: {
+        ...(nodeRef.current.styles || {}),
+        width,
+        height,
+      },
+    });
+  }, [isResizing, elementRef, updateNode]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    window.addEventListener('mousemove', handleResizeMouseMove, { passive: true });
+    window.addEventListener('mouseup', handleResizeMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleResizeMouseMove);
+      window.removeEventListener('mouseup', handleResizeMouseUp);
+    };
+  }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,6 +136,7 @@ export default function CanvasNode({
       ...getInlineStyles(),
     };
 
+
     // Inicializar la transformación de coordenadas
     if (!isBody) {
       styles.transform = `translate(${node.x || 0}px, ${node.y || 0}px)`;
@@ -73,6 +152,7 @@ export default function CanvasNode({
   };
 
   const style = getPositionStyles();
+
 
   // 1. RENDER CONTAINER NODE
   if (node.type === 'container') {
@@ -111,6 +191,7 @@ export default function CanvasNode({
         onClick={handleClick}
         {...handlers}
         className={cn(
+          'relative',
           'transition-shadow duration-150',
           'border border-dashed border-gray-200 rounded-md hover:border-blue-300',
           isSelected && 'outline-2 outline-blue-600 outline-offset-1',
@@ -139,6 +220,19 @@ export default function CanvasNode({
             Empty {node.name}
           </div>
         )}
+
+        {/* Resize handle (solo cuando está seleccionado) */}
+        {isSelected && (
+          <div
+            onMouseDown={handleResizeMouseDown}
+            className={cn(
+              'absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-sm border border-blue-600 bg-white shadow-xs',
+              'cursor-se-resize',
+              isResizing && 'bg-blue-50'
+            )}
+            title="Resize"
+          />
+        )}
       </div>
     );
   }
@@ -148,16 +242,16 @@ export default function CanvasNode({
     return (
       <div 
         ref={elementRef as React.RefObject<HTMLDivElement>}
-        style={style} 
+        // style={style} 
         onClick={handleClick}
-        {...handlers}
+        // {...handlers}
         className="relative group/text"
       >
         <p
           className={cn(
-            'text-gray-700 text-sm leading-relaxed p-1 hover:bg-blue-50/30 rounded transition-colors m-0',
+            'text-gray-700 text-sm leading-relaxed  hover:bg-blue-50/30 rounded transition-colors m-0',
             isSelected && 'outline-2 outline-blue-600 rounded-sm',
-            isDragging && 'opacity-80 shadow-lg cursor-grabbing'
+            // isDragging && 'opacity-80 shadow-lg cursor-grabbing'
           )}
         >
           {node.content || 'Start typing text here...'}
