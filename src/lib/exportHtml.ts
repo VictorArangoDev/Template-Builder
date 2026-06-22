@@ -127,9 +127,11 @@ export function buildExportHtmlDocumentFromPages(pages: ExportPage[], title: str
     </style>
   </head>
   <body>
+  <main id="document-root">
     <div class="page-root">
       ${inner}
     </div>
+    </main>
   </body>
 </html>`;
 }

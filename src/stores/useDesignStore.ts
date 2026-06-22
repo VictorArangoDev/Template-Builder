@@ -13,6 +13,7 @@ interface DesignState {
   addPage: (page: any) => void;
   removePage: (pageId: string) => void;
   selectPage: (pageId:string) => void;
+  renamePage: (pageId:string, title:string) => void;
   updateNodePosition: (nodeId: string, x: number, y: number) => void;
   updateCurrentPageNodes: (nodes: TNode[]) => void;
   
@@ -41,6 +42,8 @@ export const useDesignStore = create<DesignState>((set) => ({
           : node
       ),
     }));
+  },
+  renamePage(pageId:string, title:string){
   },
   updateCurrentPageNodes: (nodes) => {
     set((state) => {

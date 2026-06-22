@@ -345,8 +345,6 @@ export function LayersPanel() {
                 >
                   <FileText className="w-4 h-4 text-gray-400" />
                   <span className="truncate flex-1">{page.title}</span>
-                  {/* <span className="text-[10px] text-gray-400 font-normal">/{page.slug}</span> */}
-                  
                 </div>
               )
             })}

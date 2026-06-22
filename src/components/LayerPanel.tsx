@@ -1,5 +1,6 @@
 import { useDesignStore } from '../stores/useDesignStore';
 import type { DesignNode } from '../types/design';
+import { useLayersStore } from '../components/layers/layer-store'
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -16,7 +17,8 @@ export default function LayerPanel() {
 }
 
 function LayerItem({ node, depth, index }: { node: DesignNode; depth: number; index: number }) {
-  const { selectNode, selectedNodeId } = useDesignStore();
+  const {} = useDesignStore();
+  const { selectNode, selectedNodeId } = useLayersStore();
   const isSelected = node.id === selectedNodeId;
   const { setNodeRef, attributes, listeners, transform, transition } = useSortable({ id: node.id });
 
